@@ -148,17 +148,16 @@ function drush_sql_build_secure_dump_command($db_spec = NULL) {
       }
       // Compress the file.
       $exec .= "; gzip $file";
-
       // Get the password file.
       $passwd_file = drush_get_option('passwd-file');
       // If no password file is given ask us the default.
       if (empty($passwd_file)) {
         $passwd_file = $dump_dir . '/' . DEFAULT_PASSWD_FILENAME;
-        // If the default password file doesn't exist. Then encrypt asking for
-        // the password.
-        if (!file_exists($passwd_file)) {
-          $exec .= "; $openssl des3 -in $file.gz -out $file.gz.enc && rm $file.gz";
-        }
+      }
+      // If the default password file doesn't exist. Then encrypt asking for
+      // the password.
+      if (!file_exists($passwd_file)) {
+        $exec .= "; $openssl des3 -in $file.gz -out $file.gz.enc && rm $file.gz";
       }
       else { // Use the given password file name.
         $exec .= "; $openssl des3 -in $file.gz -out $file.gz.enc -pass file:$passwd_file && rm $file.gz";
