@@ -22,7 +22,7 @@
 ## 1. drush sql-secure-dump
 
    This command implements a **secure** database dump. It uses the
-   =openssl= command line utility to encrypt and decrypt the files.
+   `openssl` command line utility to encrypt and decrypt the files.
 
     drush sql-secure-dump @mysite
 
@@ -30,7 +30,7 @@
    for the site configured under the **alias** mysite on your
    `~/.drush=` directory.
 
-   By default the dumps are stored in =~/.drush-dumps=. If the
+   By default the dumps are stored in `~/.drush-dumps`. If the
    directory doesn't exist it's created by the command. You can
    override the default dump destination with the 
    `--result-file=/path/to/secure_dump` option.
@@ -91,7 +91,7 @@
    for the site configured under the **alias** mysite on your
    `~/.drush=` directory.
 
-   By default the dumps are stored in =~/.drush-dumps=. If the
+   By default the dumps are stored in `~/.drush-dumps`. If the
    directory doesn't exist it's created by the command. You can
    override the default dump destination with the 
    `--result-file=/path/to/gzipped_dump` option.
