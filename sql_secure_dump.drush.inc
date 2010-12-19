@@ -165,7 +165,7 @@ function drush_sql_build_secure_dump_command($db_spec = NULL) {
       break;
   }
   return $exec;
-}
+} // drush_sql_build_secure_dump_command
 
 
 /** 

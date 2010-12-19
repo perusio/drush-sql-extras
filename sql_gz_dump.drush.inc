@@ -130,8 +130,16 @@ function drush_sql_build_gz_dump_command($db_spec = NULL) {
           $exec .= " >> $file";
         }
       }
-      // Compress the file.
-      $exec .= "; gzip $file";
+      // Get the compression level.
+      $gzip_compression_level = drush_get_option('compression-level');
+      if (!empty($gzip_compression_level)) {
+        // Compress the file. Default compression level. 
+        $exec .= "; gzip $file";        
+      }
+      else {
+        // Compress the file. Specified compression level. 
+        $exec .= "; gzip -$gzip_compression_level $file";        
+      }        
       break;
   }
   return $exec;
