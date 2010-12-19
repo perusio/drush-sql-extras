@@ -19,7 +19,7 @@
     should get the help text for `sql-secure-dump`.
    
 
-## 1. drush-sql-secure-dump
+## 1. drush sql-secure-dump
 
    This command implements a **secure** database dump. It uses the
    =openssl= command line utility to encrypt and decrypt the files.
@@ -80,7 +80,7 @@
    
    The command **alias** is `sqsec`.
    
-## 2. sql-gz-dump
+## 2. drush sql-gz-dump
 
    This is just a version of the `sql-dump` command that provides a
    gzipped dump.    
