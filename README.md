@@ -75,7 +75,7 @@
    someone else. No longer you have to sanitize the dump removing the
    email addresses from the `users` table.
    
-   As usual in `drush` command specific help is obtained through
+   As usual in `drush`, command specific help is obtained through
    `drush help sql-secure-dump`.
    
    The command **alias** is `sqsec`.
@@ -100,5 +100,8 @@
    **6**. This can be overriden by specifying the option
    `--compression-level=<compression level>` where `<compression
    level>` is a number between 1 and 9.
+
+   As usual in `drush`, command specific help is obtained through
+   `drush help sql-gz-dump`.
 
    The command **alias** is `sqgz`.
