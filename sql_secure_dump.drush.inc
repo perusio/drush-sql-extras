@@ -1,6 +1,6 @@
 <?php
 /**
- * @file   secure_db_dump.inc
+ * @file   sql_secure_dump.drush.inc
  * @author António P. P. Almeida <appa@perusio.net>
  * @date   Tue Nov 16 21:03:54 2010
  * 
@@ -47,7 +47,8 @@ function sql_secure_dump_drush_command() {
       '--skip-tables-key' => 'A key in the $skip_tables array. @see example.drushrc.php. Optional.',
       '--structure-tables-key' => 'A key in the $structure_tables array. @see example.drushrc.php. Optional.',
       '--openssl=/path/to/openssl' => 'The location of the openssl executable. If not given it tries to find it in the path.',
-      '--passwd-file=/path/to/password_file' => 'The location of the password file to be used when encrypting the dump.' 
+      '--passwd-file=/path/to/password_file' => 'The location of the password file to be used when encrypting the dump.',
+      '--compression-level=' => 'The gzip algorithm compression level. The default is 6.' 
     ) + $options,
     'aliases' => array('sqsec'),
   );
@@ -146,8 +147,16 @@ function drush_sql_build_secure_dump_command($db_spec = NULL) {
           $exec .= " >> $file";
         }
       }
-      // Compress the file.
-      $exec .= "; gzip $file";
+      // Get the compression level.
+      $gzip_compression_level = drush_get_option('compression-level');
+      if (!empty($gzip_compression_level)) {
+        // Compress the file. Default compression level. 
+        $exec .= "; gzip $file";        
+      }
+      else {
+        // Compress the file. Specified compression level. 
+        $exec .= "; gzip -$gzip_compression_level $file";        
+      }
       // Get the password file.
       $passwd_file = drush_get_option('passwd-file');
       // If no password file is given ask us the default.

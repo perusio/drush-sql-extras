@@ -42,7 +42,7 @@ function sql_gz_dump_drush_command() {
       '--result-file' => 'Save to a file. The file should be relative to Drupal root. If you do not define this value, it will be automatically generated.',
       '--skip-tables-key' => 'A key in the $skip_tables array. @see example.drushrc.php. Optional.',
       '--structure-tables-key' => 'A key in the $structure_tables array. @see example.drushrc.php. Optional.',
-      '--compression-level=' => 'The gzip algorithm compression level. Default is 6.',
+      '--compression-level=' => 'The gzip algorithm compression level. The default is 6.',
     ) + $options,
     'aliases' => array('sqgz'),
   );
