@@ -12,7 +12,7 @@
       
     `$options['include'] = '/path/to/extra_drush_commands';`
  
-   or pass the option `-i=/path/to/extra_drush_commands` to drush.
+    or pass the option `-i=/path/to/extra_drush_commands` to drush.
    
  3. You should be ready and set to go. Verify that everything is
     working by issuing: `drush help sql-secure-dump`, for example. You
