@@ -28,7 +28,7 @@
 
    This creates a gzipped and encrypted dump of the Drupal database
    for the site configured under the **alias** mysite on your
-   `~/.drush=` directory.
+   `~/.drush` directory.
 
    By default the dumps are stored in `~/.drush-dumps`. If the
    directory doesn't exist it's created by the command. You can
