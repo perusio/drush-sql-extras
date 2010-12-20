@@ -63,6 +63,9 @@
    `--compression-level=<compression level>` where `<compression
    level>` is a number between 1 and 9.
    
+   The dump created has the filename `<database name>-<hostname>-YearMonthDay-HourMinutesSeconds.sql.gz.enc`.
+   
+   Example: `my_drupal_db-localhost_2010Dec19-164017.sql.gz.enc`
    
    Of course this is not a _paranoid_ version of a DB dump. There are
    many potential flaws in the process. If you really want a **as
@@ -100,6 +103,10 @@
    **6**. This can be overriden by specifying the option
    `--compression-level=<compression level>` where `<compression
    level>` is a number between 1 and 9.
+
+   The dump created has the filename `<database name>-<hostname>-YearMonthDay-HourMinutesSeconds.sql.gz`.
+   
+   Example: `my_drupal_db-localhost_2010Dec19-164017.sql.gz`
 
    As usual in `drush`, command specific help is obtained through
    `drush help sql-gz-dump`.
