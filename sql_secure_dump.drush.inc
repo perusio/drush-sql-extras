@@ -182,7 +182,8 @@ function drush_sql_build_secure_dump_command($db_spec = NULL) {
  * exists it creates the directory.
  * 
  * 
- * @return 
+ * @return
+ *   The directory name.
  */
 function drush_create_dir_sql_secure_dump() {
   // Get the directory where the dumps are stored by default.

@@ -151,7 +151,8 @@ function drush_sql_build_gz_dump_command($db_spec = NULL) {
  * exists it creates the directory.
  * 
  * 
- * @return 
+ * @return
+ *   The directory name.
  */
 function drush_create_dir_sql_gz_dump() {
   // Get the directory where the dumps are stored by default.
