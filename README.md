@@ -67,6 +67,12 @@
    
    Example: `my_drupal_db-localhost_2010Dec19-164017.sql.gz.enc`
    
+   To get the dump to skip the _common_ tables like `cache_*` and such
+   add the following to your `~/.drush/drushrc.php` file:
+   
+       // Always drop the common tables when doing a dump.
+       $command_specific['sql-secure-dump']['skip-tables-key'] = 'common';
+   
    Of course this is not a _paranoid_ version of a DB dump. There are
    many potential flaws in the process. If you really want a **as
    secure as possible** setup then nothing beats **full disk
@@ -107,6 +113,14 @@
    The dump created has the filename `<database name>-<hostname>-YearMonthDay-HourMinutesSeconds.sql.gz`.
    
    Example: `my_drupal_db-localhost_2010Dec19-164017.sql.gz`
+
+   To get the dump to skip the _common_ tables like `cache_*` and such
+   add the following to your `~/.drush/drushrc.php` file:
+   
+       // Always drop the common tables when doing a dump.
+       $command_specific['sql-gz-dump']['skip-tables-key'] = 'common';
+
+
 
    As usual in `drush`, command specific help is obtained through
    `drush help sql-gz-dump`.
