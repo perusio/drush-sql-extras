@@ -132,7 +132,7 @@ function drush_sql_build_gz_dump_command($db_spec = NULL) {
       }
       // Get the compression level.
       $gzip_compression_level = drush_get_option('compression-level');
-      if (!empty($gzip_compression_level)) {
+      if (empty($gzip_compression_level)) {
         // Compress the file. Default compression level. 
         $exec .= "; gzip $file";        
       }
