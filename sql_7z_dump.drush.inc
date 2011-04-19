@@ -1,66 +1,67 @@
 <?php
 /**
- * @file   sql_gz_dump.drush.inc
- * @author AntÃ³nio P. P. Almeida <appa@perusio.net>
+ * @file   sql_7z_dump.drush.inc
+ * @author António P. P. Almeida <appa@perusio.net>
  * @date   Sun Dec 19 16:34:45 2010
  * 
- * @brief  Implements a drush command for gzipped database dumps.
- * 
+ * @brief  Implements a drush command for 7zipped database dumps.
+ * p7     
  * 
  */
 
 // The default DB dumps directory name.
 define('DEFAULT_DB_DUMP_DIRNAME', '.drush-dumps');
+define('DEFAULT_P7ZIP_PROGRAM', '/usr/bin/p7zip');
 
 /**
 * Implementation of hook_drush_help().
 */
-function sql_gz_dump_drush_help($section) {
+function sql_7z_dump_drush_help($section) {
   switch ($section) {
-    case 'drush:sql-gz-dump':
-      return dt('Dumps a database and compresses it using gzip');
+    case 'drush:sql-7z-dump':
+      return dt('Dumps a database and compresses it using 7zip2');
   }
 } // secure_db_dump_drush_help
 
 /**
 * Implementation of hook_drush_command().
 */
-function sql_gz_dump_drush_command() {
+function sql_7z_dump_drush_command() {
   $options['--database'] = 'The DB connection key if using multiple connections in settings.php.';
   if (drush_drupal_major_version() >= 7) {
     $options['--target'] = 'The name of a target within the specified database.';
   }
-  $items['sql-gz-dump'] = array(
-    'callback' => 'drush_sql_gz_dump_execute',
-    'description' => 'Exports the Drupal DB as SQL using mysqldump and compresses the dump. Default location is ~.drush-dumps.',
+  $items['sql-7z-dump'] = array(
+    'callback' => 'drush_sql_7z_dump_execute',
+    'description' => 'Exports the Drupal DB as SQL using mysqldump and compresses the dump using 7zip2. Default location is ~.drush-dumps.',
     'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_CONFIGURATION,
     'examples' => array(
-      'drush sql-gz-dump --result-file=../18.sql' => 'Save SQL dump to the directory above Drupal root.',
-      'drush sql-gz-dump --skip-tables-key=common' => 'Skip standard tables. @see example.drushrc.com',
+      'drush sql-7z-dump --result-file=../18.sql' => 'Save SQL dump to the directory above Drupal root.',
+      'drush sql-7z-dump --skip-tables-key=common' => 'Skip standard tables. @see example.drushrc.com',
     ),
     'options' => array(
       '--result-file' => 'Save to a file. The file should be relative to Drupal root. If you do not define this value, it will be automatically generated.',
       '--skip-tables-key' => 'A key in the $skip_tables array. @see example.drushrc.php. Optional.',
       '--structure-tables-key' => 'A key in the $structure_tables array. @see example.drushrc.php. Optional.',
-      '--compression-level=' => 'The gzip algorithm compression level. The default is 6.',
+      '--compression-level=' => 'The 7zip algorithm compression level. The default is 6.',
     ) + $options,
-    'aliases' => array('sqgz'),
+    'aliases' => array('sq7z'),
   );
   return $items;
-} // sql_gz_dump_drush_command
+} // sql_7z_dump_drush_command
 
 /**
 * Command callback. Outputs the entire Drupal database in SQL format using
 * mysqldump.
 */
-function drush_sql_gz_dump_execute() {
+function drush_sql_7z_dump_execute() {
   static $dumped;
   // Hack to get it to not dump the DB twice.
   // Needs work!
   if (isset($dumped)) {
     return;
   }
-  $exec = drush_sql_build_gz_dump_command();
+  $exec = drush_sql_build_7z_dump_command();
   // Avoid the php memory of the $output array in drush_shell_exec().
   $return = drush_op('system', $exec);
   $dumped = TRUE;
@@ -75,7 +76,7 @@ function drush_sql_gz_dump_execute() {
 * @return string
 *   A mysqldump statement that is ready for executing.
 */
-function drush_sql_build_gz_dump_command($db_spec = NULL) {
+function drush_sql_build_7z_dump_command($db_spec = NULL) {
   $skip_tables = $structure_tables = $ignores = array();
  
 // Skip large core tables if instructed.  Also used by 'sql load' command.
@@ -109,7 +110,7 @@ function drush_sql_build_gz_dump_command($db_spec = NULL) {
           // using our own standard for backup dumps.
           $file = $database . '-' . $host . '_' . date('YMd-His') . '.sql';
           // Creating the directory with the secure db dump.
-          $dump_dir = drush_create_dir_sql_gz_dump();
+          $dump_dir = drush_create_dir_sql_7z_dump();
           $file = $dump_dir . '/' . $file;
           $exec .= ' --result-file ' . $file;
       }
@@ -130,20 +131,31 @@ function drush_sql_build_gz_dump_command($db_spec = NULL) {
           $exec .= " >> $file";
         }
       }
+      
+      $p7zip = trim(shell_exec('which p7zip'));
+      // which might not exist so we try brute force.
+      if (empty($p7zip)) {
+        $p7zip = DEFAULT_P7ZIP_PROGRAM; 
+      }
+      // Check if it really exists.
+      if (!file_exists($p7zip)) {
+        return drush_set_error('NO_7zIP2', dt('No 7zip2 executable found.'));
+      }
+      
       // Get the compression level.
-      $gzip_compression_level = drush_get_option('compression-level');
+      $p7zip_compression_level = drush_get_option('compression-level');
       if (empty($gzip_compression_level)) {
         // Compress the file. Default compression level. 
-        $exec .= "; gzip $file";        
+        $exec .= "; p7zip $file";        
       }
       else {
         // Compress the file. Specified compression level. 
-        $exec .= "; gzip -$gzip_compression_level $file";        
+        $exec .= "; p7zip -$7zip_compression_level $file";        
       }        
       break;
   }
   return $exec;
-} // drush_sql_build_gz_dump_command
+} // drush_sql_build_7z_dump_command
 
 
 /** 
@@ -154,7 +166,7 @@ function drush_sql_build_gz_dump_command($db_spec = NULL) {
  * @return
  *   The directory name.
  */
-function drush_create_dir_sql_gz_dump() {
+function drush_create_dir_sql_7z_dump() {
   // Get the directory where the dumps are stored by default.
   $dump_dir = $_SERVER['HOME'] . '/' . DEFAULT_DB_DUMP_DIRNAME; 
 
@@ -163,4 +175,4 @@ function drush_create_dir_sql_gz_dump() {
     drush_mkdir($dump_dir);
   }
   return $dump_dir;
-} // drush_create_dir_sql_gz_dump
+} // drush_create_dir_sql_7z_dump
