@@ -31,7 +31,7 @@ function sql_gz_dump_drush_command() {
     $options['--target'] = 'The name of a target within the specified database.';
   }
   $items['sql-gz-dump'] = array(
-    'callback' => 'drush_sql_gz_dump_execute',
+    'callback' => 'drush_extras_sql_gz_dump_execute',
     'description' => 'Exports the Drupal DB as SQL using mysqldump and compresses the dump. Default location is ~.drush-dumps.',
     'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_CONFIGURATION,
     'examples' => array(
@@ -53,13 +53,7 @@ function sql_gz_dump_drush_command() {
 * Command callback. Outputs the entire Drupal database in SQL format using
 * mysqldump.
 */
-function drush_sql_gz_dump_execute() {
-  static $dumped;
-  // Hack to get it to not dump the DB twice.
-  // Needs work!
-  if (isset($dumped)) {
-    return;
-  }
+function drush_extras_sql_gz_dump_execute() {
   $exec = drush_sql_build_gz_dump_command();
   // Avoid the php memory of the $output array in drush_shell_exec().
   $return = drush_op('system', $exec);
