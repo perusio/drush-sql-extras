@@ -1,72 +1,67 @@
 <?php
 /**
- * @file   sql_secure_dump.drush.inc
- * @author AntÃ³nio P. P. Almeida <appa@perusio.net>
- * @date   Tue Nov 16 21:03:54 2010
+ * @file   sql_bz_dump.drush.inc
+ * @author António P. P. Almeida <appa@perusio.net>
+ * @date   Sun Dec 19 16:34:45 2010
  * 
- * @brief  Implements a drush command for secure database dumps.
+ * @brief  Implements a drush command for bzipped database dumps.
  * 
  * 
  */
 
-// The default openssl executable.
-define('DEFAULT_OPENSSL_PROGRAM', '/usr/bin/openssl');
 // The default DB dumps directory name.
 define('DEFAULT_DB_DUMP_DIRNAME', '.drush-dumps');
-// The default password filename.
-define('DEFAULT_PASSWD_FILENAME', '.dump-passwd');
+define('DEFAULT_BZIP2_PROGRAM', '/usr/bin/bzip2');
 
 /**
 * Implementation of hook_drush_help().
 */
-function sql_secure_dump_drush_help($section) {
+function sql_bz_dump_drush_help($section) {
   switch ($section) {
-    case 'drush:sql-secure-dump':
-      return dt('Dumps a database and encrypts it using OpenSSL with DES3');
+    case 'drush:sql-bz-dump':
+      return dt('Dumps a database and compresses it using bzip2');
   }
 } // secure_db_dump_drush_help
 
 /**
 * Implementation of hook_drush_command().
 */
-function sql_secure_dump_drush_command() {
+function sql_bz_dump_drush_command() {
   $options['--database'] = 'The DB connection key if using multiple connections in settings.php.';
   if (drush_drupal_major_version() >= 7) {
     $options['--target'] = 'The name of a target within the specified database.';
   }
-  $items['sql-secure-dump'] = array(
-    'callback' => 'drush_sql_secure_dump_execute',
-    'description' => 'Exports the Drupal DB as SQL using mysqldump and encrypts the dump.',
+  $items['sql-bz-dump'] = array(
+    'callback' => 'drush_sql_bz_dump_execute',
+    'description' => 'Exports the Drupal DB as SQL using mysqldump and compresses the dump using bzip2. Default location is ~.drush-dumps.',
     'bootstrap' => DRUSH_BOOTSTRAP_DRUPAL_CONFIGURATION,
     'examples' => array(
-      'drush sql-secure-dump --result-file=../18.sql' => 'Save SQL dump to the directory above Drupal root. Default location is ~.drush-dumps.',
-      'drush sql-secure-dump --skip-tables-key=common' => 'Skip standard tables. @see example.drushrc.com',
+      'drush sql-bz-dump --result-file=../18.sql' => 'Save SQL dump to the directory above Drupal root.',
+      'drush sql-bz-dump --skip-tables-key=common' => 'Skip standard tables. @see example.drushrc.com',
     ),
     'options' => array(
       '--result-file' => 'Save to a file. The file should be relative to Drupal root. If you do not define this value, it will be automatically generated.',
       '--skip-tables-key' => 'A key in the $skip_tables array. @see example.drushrc.php. Optional.',
       '--structure-tables-key' => 'A key in the $structure_tables array. @see example.drushrc.php. Optional.',
-      '--openssl=/path/to/openssl' => 'The location of the openssl executable. If not given it tries to find it in the path.',
-      '--passwd-file=/path/to/password_file' => 'The location of the password file to be used when encrypting the dump.',
-      '--compression-level=' => 'The gzip algorithm compression level. The default is 6.' 
+      '--compression-level=' => 'The bzip algorithm compression level. The default is 6.',
     ) + $options,
-    'aliases' => array('sqsec'),
+    'aliases' => array('sqbz'),
   );
   return $items;
-} // sql_secure_dump_drush_command
+} // sql_bz_dump_drush_command
 
 /**
 * Command callback. Outputs the entire Drupal database in SQL format using
 * mysqldump.
 */
-function drush_sql_secure_dump_execute() {
+function drush_sql_bz_dump_execute() {
   static $dumped;
   // Hack to get it to not dump the DB twice.
   // Needs work!
   if (isset($dumped)) {
     return;
   }
-  $exec = drush_sql_build_secure_dump_command();
+  $exec = drush_sql_build_bz_dump_command();
   // Avoid the php memory of the $output array in drush_shell_exec().
   $return = drush_op('system', $exec);
   $dumped = TRUE;
@@ -81,7 +76,7 @@ function drush_sql_secure_dump_execute() {
 * @return string
 *   A mysqldump statement that is ready for executing.
 */
-function drush_sql_build_secure_dump_command($db_spec = NULL) {
+function drush_sql_build_bz_dump_command($db_spec = NULL) {
   $skip_tables = $structure_tables = $ignores = array();
  
 // Skip large core tables if instructed.  Also used by 'sql load' command.
@@ -106,27 +101,16 @@ function drush_sql_build_secure_dump_command($db_spec = NULL) {
       $database = $db_spec['database'];
       $host = $db_spec['host'];
       
-      // Get the commands.
-      $openssl = trim(shell_exec('which openssl'));
-      // which might not exist so we try brute force.
-      if (empty($openssl)) {
-        $openssl = DEFAULT_OPENSSL_PROGRAM; 
-      }
-      // Check if it really exists.
-      if (!file_exists($openssl)) {
-        return drush_set_error('NO_OPENSSL', dt('No openssl executable found.'));
-      }
-      
       $exec = 'mysqldump';
       if ($file = drush_get_option('result-file')) {
         $exec .= ' --result-file '. $file;
       }
       else {
           // No result file defined. We write our own in a specific
-          // using my own standard for backup dumps
+          // using our own standard for backup dumps.
           $file = $database . '-' . $host . '_' . date('YMd-His') . '.sql';
           // Creating the directory with the secure db dump.
-          $dump_dir = drush_create_dir_sql_secure_dump();
+          $dump_dir = drush_create_dir_sql_bz_dump();
           $file = $dump_dir . '/' . $file;
           $exec .= ' --result-file ' . $file;
       }
@@ -147,34 +131,31 @@ function drush_sql_build_secure_dump_command($db_spec = NULL) {
           $exec .= " >> $file";
         }
       }
+      
+      $bzip2 = trim(shell_exec('which bzip2'));
+      // which might not exist so we try brute force.
+      if (empty($bzip2)) {
+        $bzip2 = DEFAULT_BZIP2_PROGRAM; 
+      }
+      // Check if it really exists.
+      if (!file_exists($bzip2)) {
+        return drush_set_error('NO_BZIP2', dt('No bzip2 executable found.'));
+      }
+      
       // Get the compression level.
-      $gzip_compression_level = drush_get_option('compression-level');
+      $bzip_compression_level = drush_get_option('compression-level');
       if (empty($gzip_compression_level)) {
         // Compress the file. Default compression level. 
-        $exec .= "; gzip $file";        
+        $exec .= "; bzip2 $file";        
       }
       else {
         // Compress the file. Specified compression level. 
-        $exec .= "; gzip -$gzip_compression_level $file";        
-      }
-      // Get the password file.
-      $passwd_file = drush_get_option('passwd-file');
-      // If no password file is given ask us the default.
-      if (empty($passwd_file)) {
-        $passwd_file = $dump_dir . '/' . DEFAULT_PASSWD_FILENAME;
-      }
-      // If the default password file doesn't exist. Then encrypt asking for
-      // the password.
-      if (!file_exists($passwd_file)) {
-        $exec .= "; $openssl des3 -in $file.gz -out $file.gz.enc && rm $file.gz";
-      }
-      else { // Use the given password file name.
-        $exec .= "; $openssl des3 -in $file.gz -out $file.gz.enc -pass file:$passwd_file && rm $file.gz";
-      }
+        $exec .= "; bzip2 -$bzip_compression_level $file";        
+      }        
       break;
   }
   return $exec;
-} // drush_sql_build_secure_dump_command
+} // drush_sql_build_bz_dump_command
 
 
 /** 
@@ -185,7 +166,7 @@ function drush_sql_build_secure_dump_command($db_spec = NULL) {
  * @return
  *   The directory name.
  */
-function drush_create_dir_sql_secure_dump() {
+function drush_create_dir_sql_bz_dump() {
   // Get the directory where the dumps are stored by default.
   $dump_dir = $_SERVER['HOME'] . '/' . DEFAULT_DB_DUMP_DIRNAME; 
 
@@ -194,4 +175,4 @@ function drush_create_dir_sql_secure_dump() {
     drush_mkdir($dump_dir);
   }
   return $dump_dir;
-} // drush_create_dir_sql_secure_dump
+} // drush_create_dir_sql_bz_dump
