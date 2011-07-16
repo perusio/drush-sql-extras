@@ -1,23 +1,10 @@
-# Drush extra commands
+# Drush SQL Extras
 
- These are a bunch of extra commands for
- [drush](http://drupal.org/project/drush "Drush project page") that
- I've created. 
- 
- In order to use them you must:
- 
- 1. Clone the repository to a given directory.
- 
- 2. Either add the following to your `~/.drush/drushrc.php`
-      
-    `$options['include'] = '/path/to/extra_drush_commands';`
- 
-    or pass the option `-i=/path/to/extra_drush_commands` to drush.
-   
- 3. You should be ready and set to go. Verify that everything is
-    working by issuing: `drush help sql-secure-dump`, for example. You
-    should get the help text for `sql-secure-dump`.
-   
+## Introduction
+
+These are a bunch of [drush](http://drupal.org/project/drush) commands
+for working databases. They build on the SQL related
+[commands](http://drush.ws) provided by core drush.
 
 ## 1. drush sql-secure-dump
 
@@ -89,40 +76,47 @@
    
    The command **alias** is `sqsec`.
    
-## 2. drush sql-gz-dump
+## 2. drush sql-bz-dump
 
    This is just a version of the `sql-dump` command that provides a
-   gzipped dump.    
+   bzipped dump.    
  
-     drush sql-gz-dump @my-site 
+     drush sql-bz-dump @my-site 
  
-   This creates a gzipped dump of the Drupal database
+   This creates a bzipped dump of the Drupal database
    for the site configured under the **alias** mysite on your
    `~/.drush=` directory.
 
    By default the dumps are stored in `~/.drush-dumps`. If the
    directory doesn't exist it's created by the command. You can
    override the default dump destination with the 
-   `--result-file=/path/to/gzipped_dump` option.
+   `--result-file=/path/to/bzipped_dump` option.
 
-   The command uses the default gzip compression level. Which is
-   **6**. This can be overriden by specifying the option
+   The command uses the default bzip compression level. Which is
+   **1**. This can be overriden by specifying the option
    `--compression-level=<compression level>` where `<compression
    level>` is a number between 1 and 9.
 
-   The dump created has the filename `<database name>-<hostname>-YearMonthDay-HourMinutesSeconds.sql.gz`.
+   The dump created has the filename `<database name>-<hostname>-YearMonthDay-HourMinutesSeconds.sql.bz`.
    
-   Example: `my_drupal_db-localhost_2010Dec19-164017.sql.gz`
+   Example: `my_drupal_db-localhost_2010Dec19-164017.sql.bz`
 
    To get the dump to skip the _common_ tables like `cache_*` and such
    add the following to your `~/.drush/drushrc.php` file:
    
        // Always drop the common tables when doing a dump.
-       $command_specific['sql-gz-dump']['skip-tables-key'] = 'common';
+       $command_specific['sql-bz-dump']['skip-tables-key'] = 'common';
 
 
 
    As usual in `drush`, command specific help is obtained through
-   `drush help sql-gz-dump`.
+   `drush help sql-bz-dump`.
 
-   The command **alias** is `sqgz`.
+   The command **alias** is `sqbz`.
+
+## Parallel compression
+
+The compression commands always try first to use the parallel version
+to take advantage of modern multi-processor, multi-core machines. In
+the case of bzip that's [`pbzip2`](http://compression.ca/pbzip2). If not
+found then it fallbacks to *regular* bzip.
