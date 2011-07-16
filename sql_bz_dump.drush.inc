@@ -9,6 +9,7 @@
  *
  */
 
+
 // The default DB dumps directory name.
 define('DRUSH_SQL_DUMP_DB_DUMP_DIRNAME', '.drush-dumps');
 // The default compression program binary.
@@ -26,6 +27,7 @@ function sql_bz_dump_drush_help($section) {
       return dt('Dumps a database and compresses it using bzip');
   }
 } // secure_db_dump_drush_help
+
 
 /**
  * Gets the path to the bzip executable. It tries first to find the pibz
@@ -81,6 +83,7 @@ function sql_bz_dump_drush_command() {
   return $items;
 } // sql_bz_dump_drush_command
 
+
 /**
  * Build a bzipped mysqldump/pg_dump/sqlite statement.
  *
@@ -102,8 +105,9 @@ function drush_sql_bz_dump_execute($db_spec = NULL) {
   return $return;
 } // drush_sql_bz_dump_execute
 
+
 /**
- * Build a bzipped mysqldump/pg_dump/sqlite statement.
+ * Build a mysqldump/pg_dump/sqlite statement.
  *
  * @param db_spec
  *   For /D6, a $db_url. For D7+, a target in the default DB connection.
@@ -153,8 +157,7 @@ function drush_sql_build_bz_dump_command($table_selection, $db_spec = NULL) {
     // using our own standard for backup dumps.
     $file = $database . '-' . $host . '_' . date('YMd-His') . '.sql';
     // Creating the directory with the secure db dump.
-    $dump_dir = drush_create_dir_sql_bz_dump();
-    $file = $dump_dir . '/' . $file;
+    $file = drush_create_dir_sql_bz_dump() . '/' . $file;
   }
 
   switch (_drush_sql_get_scheme($db_spec)) {
