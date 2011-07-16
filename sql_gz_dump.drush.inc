@@ -3,18 +3,23 @@
  * @file   sql_gz_dump.drush.inc
  * @author António P. P. Almeida <appa@perusio.net>
  * @date   Sun Dec 19 16:34:45 2010
- * 
+ *
  * @brief  Implements a drush command for gzipped database dumps.
- * 
- * 
+ *
+ *
  */
 
 // The default DB dumps directory name.
-define('DEFAULT_DB_DUMP_DIRNAME', '.drush-dumps');
+define('DRUSH_SQL_DUMP_DB_DUMP_DIRNAME', '.drush-dumps');
+// The default compression program binary.
+define('DRUSH_SQL_DUMP_GZIP_PROGRAM', '/usr/bin/gzip');
+// The default paralledl compression program binary.
+define('DRUSH_SQL_DUMP_PGZIP_PROGRAM', '/usr/bin/pigz');
+
 
 /**
-* Implementation of hook_drush_help().
-*/
+ * Implementation of hook_drush_help().
+ */
 function sql_gz_dump_drush_help($section) {
   switch ($section) {
     case 'drush:sql-gz-dump':
@@ -23,8 +28,28 @@ function sql_gz_dump_drush_help($section) {
 } // secure_db_dump_drush_help
 
 /**
-* Implementation of hook_drush_command().
-*/
+ * Gets the path to the gzip executable. It tries first to find the pigz
+ * binary for taking advantage of multicore machines.
+ *
+ * @return string
+ *   The path to the gzip executable.
+ */
+function sql_gz_get_gzip_command() {
+  // Trying first to use pigz.
+  $gzip_binary =
+    is_executable(DRUSH_SQL_DUMP_PGZIP_PROGRAM) ? DRUSH_SQL_DUMP_PGZIP_PROGRAM : `which pigz`;
+  // If not found try the regular gzip.
+  if (empty($gzip_binary)) {
+    $gzip_binary =
+      is_executable(DRUSH_SQL_DUMP_GZIP_PROGRAM) ? DRUSH_SQL_DUMP_GZIP_PROGRAM : `which gzip`;
+  }
+  return $gzip_binary;
+} // sql_gz_get_gzip_command
+
+
+/**
+ * Implementation of hook_drush_command().
+ */
 function sql_gz_dump_drush_command() {
   $options['--database'] = 'The DB connection key if using multiple connections in settings.php.';
   if (drush_drupal_major_version() >= 7) {
@@ -50,9 +75,9 @@ function sql_gz_dump_drush_command() {
 } // sql_gz_dump_drush_command
 
 /**
-* Command callback. Outputs the entire Drupal database in SQL format using
-* mysqldump.
-*/
+ * Command callback. Outputs the entire Drupal database in SQL format using
+ * mysqldump.
+ */
 function drush_sql_gz_dump_execute() {
   static $dumped;
   // Hack to get it to not dump the DB twice.
@@ -68,23 +93,23 @@ function drush_sql_gz_dump_execute() {
 }
 
 /**
-* Build a mysqldump statement.
-* 
-* @param db_spec
-*   For D5/D6, a $db_url. For D7, a target in the default DB connection.
-* @return string
-*   A mysqldump statement that is ready for executing.
-*/
+ * Build a mysqldump statement.
+ *
+ * @param db_spec
+ *   For D5/D6, a $db_url. For D7, a target in the default DB connection.
+ * @return string
+ *   A mysqldump statement that is ready for executing.
+ */
 function drush_sql_build_gz_dump_command($db_spec = NULL) {
   $skip_tables = $structure_tables = $ignores = array();
- 
-// Skip large core tables if instructed.  Also used by 'sql load' command.
+
+  // Skip large core tables if instructed.  Also used by 'sql load' command.
   $key = drush_get_option('skip-tables-key');
   $all_skip_tables = drush_get_option('skip-tables', array());
   if (array_key_exists($key, $all_skip_tables)) {
     $skip_tables = $all_skip_tables[$key];
   }
- 
+
   // Skip any structure-tables as well.
   $key = drush_get_option('structure-tables-key');
   $all_structure_tables = drush_get_option('structure-tables', array());
@@ -99,29 +124,29 @@ function drush_sql_build_gz_dump_command($db_spec = NULL) {
       }
       $database = $db_spec['database'];
       $host = $db_spec['host'];
-      
+
       $exec = 'mysqldump';
       if ($file = drush_get_option('result-file')) {
         $exec .= ' --result-file '. $file;
       }
       else {
-          // No result file defined. We write our own in a specific
-          // using our own standard for backup dumps.
-          $file = $database . '-' . $host . '_' . date('YMd-His') . '.sql';
-          // Creating the directory with the secure db dump.
-          $dump_dir = drush_create_dir_sql_gz_dump();
-          $file = $dump_dir . '/' . $file;
-          $exec .= ' --result-file ' . $file;
+        // No result file defined. We write our own in a specific
+        // using our own standard for backup dumps.
+        $file = $database . '-' . $host . '_' . date('YMd-His') . '.sql';
+        // Creating the directory with the secure db dump.
+        $dump_dir = drush_create_dir_sql_gz_dump();
+        $file = $dump_dir . '/' . $file;
+        $exec .= ' --result-file ' . $file;
       }
       $extra = ' --single-transaction --opt -Q' . str_replace('--database=', ' ', _drush_sql_get_credentials($db_spec)) ;
       $exec .= $extra;
-     
+
       // Append the ignore-table options.
       foreach ($skip_tables as $table) {
         $ignores[] = "--ignore-table=$database.$table";
       }
       $exec .= ' '. implode(' ', $ignores);
-     
+
       // Run mysqldump again and append output if we need some structure only
       // tables.
       if (!empty($structure_tables)) {
@@ -130,33 +155,35 @@ function drush_sql_build_gz_dump_command($db_spec = NULL) {
           $exec .= " >> $file";
         }
       }
+      // Get the compression program to be used.
+      $gzip_program = sql_gz_get_gzip_command();
       // Get the compression level.
       $gzip_compression_level = drush_get_option('compression-level');
       if (empty($gzip_compression_level)) {
-        // Compress the file. Default compression level. 
-        $exec .= "; gzip $file";        
+        // Compress the file. Default compression level.
+        $exec .= "; $gzip_program $file";
       }
       else {
-        // Compress the file. Specified compression level. 
-        $exec .= "; gzip -$gzip_compression_level $file";        
-      }        
+        // Compress the file. Specified compression level.
+        $exec .= "; $gzip_program -$gzip_compression_level $file";
+      }
       break;
   }
   return $exec;
 } // drush_sql_build_gz_dump_command
 
 
-/** 
+/**
  * This function builds the name of the default dump directory. If it doesn't
  * exists it creates the directory.
- * 
- * 
+ *
+ *
  * @return
  *   The directory name.
  */
 function drush_create_dir_sql_gz_dump() {
   // Get the directory where the dumps are stored by default.
-  $dump_dir = $_SERVER['HOME'] . '/' . DEFAULT_DB_DUMP_DIRNAME; 
+  $dump_dir = $_SERVER['HOME'] . '/' . DRUSH_SQL_DUMP_DB_DUMP_DIRNAME;
 
   // Check if the directory exists. If not create it.
   if (!is_dir($dump_dir)) {
