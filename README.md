@@ -45,8 +45,10 @@ for working databases. They build on the SQL related
      
    The password will be requested.
    
-   The command uses the default gzip compression level. Which is
-   **6**. This can be overriden by specifying the option
+   You can automate this decryption process using a tool like [decrypt-file](https://github.com/perusio/encrypt-file).
+   
+   The command uses the default bzip compression level. Which is
+   **1**. This can be overriden by specifying the option
    `--compression-level=<compression level>` where `<compression
    level>` is a number between 1 and 9.
    
