@@ -129,3 +129,8 @@ The compression commands always try first to use the parallel version
 to take advantage of modern multi-processor, multi-core machines. In
 the case of bzip that's [`pbzip2`](http://compression.ca/pbzip2). If not
 found then it fallbacks to *regular* bzip.
+
+
+## TODO
+
+Implement a dump command for MySQL/MariaDB/Percona Server using [XtraBackup](http://www.percona.com/software/percona-xtrabackup/).
