@@ -59,7 +59,7 @@ function sql_secure_dump_drush_command() {
       'ordered-dump' => 'Order by primary key and add line breaks for efficient diff in revision control. Also, faster rsync. Slows down the dump. Mysql only.',
       '--result-file' => 'Save to a file. The file should be relative to Drupal root. If you do not define this value, it will be automatically generated.',
       '--openssl=/path/to/openssl' => 'The location of the openssl executable. If not given it tries to find it in the path.',
-      '--passwd-file=/path/to/password_file' => 'The location of the password file to be used when encrypting the dump.',
+      '--passwd-file=/path/to/password_file' => 'The location of the password file to be used when encrypting the dump. The default is ~/' . DRUSH_SQL_SECURE_DUMP_PASSWD_FILENAME . '.',
       '--compression-level=' => 'The bzip algorithm compression level. The default is 1.',
     ) + $options,
     'aliases' => array('sqsec'),
@@ -256,13 +256,13 @@ function drush_sql_build_secure_dump_command($table_selection, $db_spec = NULL) 
   // If the default password file doesn't exist. Then encrypt asking for
   // the password.
   if (!file_exists($passwd_file)) {
-    $exec .= "; $openssl des3 -in $file.gz -out $file.gz.enc && rm $file.gz";
+    $exec .= "; $openssl des3 -in $file.bz2 -out $file.bz2.enc && rm $file.bz2";
   }
   else { // Use the given password file name.
-    $exec .= "; $openssl des3 -in $file.gz -out $file.gz.enc -pass file:$passwd_file && rm $file.gz";
+    $exec .= "; $openssl des3 -in $file.bz2 -out $file.bz2.enc -pass file:$passwd_file && rm $file.bz2";
   }
 
-  return array($exec, $file);
+  return array($exec, "$file.bz2.enc");
 } // drush_sql_build_secure_dump_command
 
 

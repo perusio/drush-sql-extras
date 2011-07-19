@@ -264,7 +264,7 @@ function drush_sql_build_bz_dump_command($table_selection, $db_spec = NULL) {
     $exec .= "; $bzip_program -$bzip_compression_level $file";
   }
 
-  return array($exec, $file);
+  return array($exec, "$file.bz2");
 } // drush_sql_build_bz_dump_command
 
 
