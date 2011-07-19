@@ -11,7 +11,7 @@
 
 
 // The default DB dumps directory name.
-define('DRUSH_SQL_DUMP_DB_DUMP_DIRNAME', '.drush-dumps');
+define('DRUSH_SQL_DUMP_DB_DUMP_DIRNAME', $_SERVER['HOME'] . '/' . '.drush-dumps');
 // The default compression program binary.
 define('DRUSH_SQL_DUMP_BZIP2_PROGRAM', '/usr/bin/bzip2');
 // The default paralledl compression program binary.
@@ -278,7 +278,7 @@ function drush_sql_build_bz_dump_command($table_selection, $db_spec = NULL) {
  */
 function drush_create_dir_sql_bz_dump() {
   // Get the directory where the dumps are stored by default.
-  $dump_dir = $_SERVER['HOME'] . '/' . DRUSH_SQL_DUMP_DB_DUMP_DIRNAME;
+  $dump_dir = DRUSH_SQL_DUMP_DB_DUMP_DIRNAME;
 
   // Check if the directory exists. If not create it.
   if (!is_dir($dump_dir)) {

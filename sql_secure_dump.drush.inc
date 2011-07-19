@@ -11,14 +11,15 @@
 
 
 // The default secure DB dumps directory.
-define('DRUSH_SQL_SECURE_DUMP_DB_DUMP_DIRNAME', '.drush-secure-dumps');
+define('DRUSH_SQL_SECURE_DUMP_DB_DUMP_DIRNAME', $_SERVER['HOME'] . '/.drush-secure-dumps');
 // The default openssl executable.
 define('DRUSH_SQL_SECURE_DUMP_OPENSSL_PROGRAM', '/usr/bin/openssl');
 // The default password filename.
-define('DRUSH_SQL_SECURE_DUMP_PASSWD_FILENAME', '.dump-passwd');
+define('DRUSH_SQL_SECURE_DUMP_PASSWD_FILENAME', $_SERVER['HOME'] . '/.dump-passwd');
 // The recommended password filename mode (in octal).
-define('DRUSH_SQL_SECURE_DUMP_PASSWD_FILE_MODE', '0400');
-
+define('DRUSH_SQL_SECURE_DUMP_PASSWD_FILE_MODE', 0400);
+// The recommended password filename mode as a string.
+define('DRUSH_SQL_SECURE_DUMP_PASSWD_FILE_MODE_STR', '400');
 
 /**
  * Implementation of hook_drush_help().
@@ -59,7 +60,7 @@ function sql_secure_dump_drush_command() {
       'ordered-dump' => 'Order by primary key and add line breaks for efficient diff in revision control. Also, faster rsync. Slows down the dump. Mysql only.',
       '--result-file' => 'Save to a file. The file should be relative to Drupal root. If you do not define this value, it will be automatically generated.',
       '--openssl=/path/to/openssl' => 'The location of the openssl executable. If not given it tries to find it in the path.',
-      '--passwd-file=/path/to/password_file' => 'The location of the password file to be used when encrypting the dump. The default is ~/' . DRUSH_SQL_SECURE_DUMP_PASSWD_FILENAME . '.',
+      '--passwd-file=/path/to/password_file' => 'The location of the password file to be used when encrypting the dump. The default is ~' . DRUSH_SQL_SECURE_DUMP_PASSWD_FILENAME . '.',
       '--compression-level=' => 'The bzip algorithm compression level. The default is 1.',
     ) + $options,
     'aliases' => array('sqsec'),
@@ -255,11 +256,11 @@ function drush_sql_build_secure_dump_command($table_selection, $db_spec = NULL) 
 
   // If the default password file doesn't exist. Then encrypt asking for
   // the password.
-  if (!file_exists($passwd_file)) {
-    $exec .= "; $openssl des3 -in $file.bz2 -out $file.bz2.enc && rm $file.bz2";
+  if ($passwd_file) {
+    $exec .= "; $openssl des3 -in $file.bz2 -out $file.bz2.enc -pass file:$passwd_file && rm $file.bz2";
   }
   else { // Use the given password file name.
-    $exec .= "; $openssl des3 -in $file.bz2 -out $file.bz2.enc -pass file:$passwd_file && rm $file.bz2";
+    $exec .= "; $openssl des3 -in $file.bz2 -out $file.bz2.enc && rm $file.bz2";
   }
 
   return array($exec, "$file.bz2.enc");
@@ -275,18 +276,21 @@ function drush_sql_build_secure_dump_command($table_selection, $db_spec = NULL) 
  * @return
  *   Either the password filename or NULL depending if the file exists.
  */
-function drush_sql_secure_dump_get_pwd_file($passwd_file = DRUSH_SQL_SECURE_DUMP_PASSWD_FILENANE) {
+function drush_sql_secure_dump_get_pwd_file($passwd_file) {
+
+  // Get the default value for the password filename.
+  $passwd_file = empty($passwd_file) ? DRUSH_SQL_SECURE_DUMP_PASSWD_FILENAME : $passwd_file;
 
   if (file_exists($passwd_file)) {
     // Test the file mode. Must be 0400 otherwise signal it and try to fix it.
-    if (substr(sprintf("%o", fileperms($passwd_file)), -5) != DRUSH_SQL_SECURE_DUMP_PASSWD_FILE_MODE) {
+    if (substr(sprintf("%o", fileperms($passwd_file)), -3) != DRUSH_SQL_SECURE_DUMP_PASSWD_FILE_MODE_STR) {
       drush_log(dt('The password file is not in readonly user only readable mode. Trying to fix it'));
       // Trying to fix the password file permissions.
       if (chmod($passwd_file, DRUSH_SQL_SECURE_DUMP_PASSWD_FILE_MODE)) {
-        drush_log(dt('Password file is now in readonly user only readable mode.'));
+        drush_log(dt('Password file is now in readonly user only mode.'), 'success');
       }
       else {
-        drush_log(dt('Cannot fix the password file mode. Continuing. Please fix it!'));
+        drush_log(dt('Cannot fix the password file mode. Continuing. Please fix it!'), 'warning');
       }
     }
     return $passwd_file;
@@ -305,7 +309,7 @@ function drush_sql_secure_dump_get_pwd_file($passwd_file = DRUSH_SQL_SECURE_DUMP
    */
 function drush_create_dir_sql_secure_dump() {
   // Get the directory where the dumps are stored by default.
-  $dump_dir = $_SERVER['HOME'] . '/' .  DRUSH_SQL_SECURE_DUMP_DB_DUMP_DIRNAME;
+  $dump_dir = DRUSH_SQL_SECURE_DUMP_DB_DUMP_DIRNAME;
 
   // Check if the directory exists. If not create it.
   if (!is_dir($dump_dir)) {
