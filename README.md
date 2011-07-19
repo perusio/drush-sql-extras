@@ -47,6 +47,13 @@ for working databases. They build on the SQL related
    
    You can automate this decryption process using a tool like [decrypt-file](https://github.com/perusio/encrypt-file).
    
+   The command tries to find a file named `~/.dump-passwd` where the
+   password is written. This is the default password filename. 
+   
+   Given a password file the command tries to change its mode to
+   `0400`, meaning to be readable by the owner only. If it cannot fix
+   the filemode then it signals that failure as a warning and proceeds.
+   
    The command uses the default bzip compression level. Which is
    **1**. This can be overriden by specifying the option
    `--compression-level=<compression level>` where `<compression
