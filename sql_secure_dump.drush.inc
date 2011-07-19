@@ -61,7 +61,7 @@ function sql_secure_dump_drush_command() {
       '--result-file' => 'Save to a file. The file should be relative to Drupal root. If you do not define this value, it will be automatically generated.',
       '--openssl=/path/to/openssl' => 'The location of the openssl executable. If not given it tries to find it in the path.',
       '--passwd-file=/path/to/password_file' => 'The location of the password file to be used when encrypting the dump. The default is ~' . DRUSH_SQL_SECURE_DUMP_PASSWD_FILENAME . '.',
-      '--compression-level=' => 'The bzip algorithm compression level. The default is 1.',
+      '--compression-level=' => 'The bzip2 algorithm compression level. The default is 1.',
     ) + $options,
     'aliases' => array('sqsec'),
   );

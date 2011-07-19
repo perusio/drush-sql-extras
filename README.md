@@ -54,7 +54,7 @@ for working databases. They build on the SQL related
    `0400`, meaning to be readable by the owner only. If it cannot fix
    the filemode then it signals that failure as a warning and proceeds.
    
-   The command uses the default bzip compression level. Which is
+   The command uses the default bzip2 compression level. Which is
    **1**. This can be overriden by specifying the option
    `--compression-level=<compression level>` where `<compression
    level>` is a number between 1 and 9.

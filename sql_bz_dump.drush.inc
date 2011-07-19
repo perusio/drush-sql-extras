@@ -24,7 +24,7 @@ define('DRUSH_SQL_DUMP_PBZIP2_PROGRAM', '/usr/bin/pbzip2');
 function sql_bz_dump_drush_help($section) {
   switch ($section) {
     case 'drush:sql-bz-dump':
-      return dt('Dumps a database and compresses it using bzip');
+      return dt('Dumps a database and compresses it using (p)bzip2');
   }
 } // secure_db_dump_drush_help
 
@@ -76,7 +76,7 @@ function sql_bz_dump_drush_command() {
       'data-only' => 'Omit CREATE TABLE statements. Postgres only.',
       'ordered-dump' => 'Order by primary key and add line breaks for efficient diff in revision control. Also, faster rsync. Slows down the dump. Mysql only.',
       '--result-file' => 'Save to a file. The file should be relative to Drupal root. If you do not define this value, it will be automatically generated.',
-      '--compression-level=' => 'The bzip algorithm compression level. The default is 1.',
+      '--compression-level=' => 'The bzip2 algorithm compression level. The default is 1.',
     ) + $options,
     'aliases' => array('sqbz'),
   );
