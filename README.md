@@ -59,9 +59,9 @@ for working databases. They build on the SQL related
    `--compression-level=<compression level>` where `<compression
    level>` is a number between 1 and 9.
    
-   The dump created has the filename `<database name>-<hostname>-YearMonthDay-HourMinutesSeconds.sql.gz.enc`.
+   The dump created has the filename `<database name>-<hostname>-YearMonthDay-HourMinutesSeconds.sql.bz2.enc`.
    
-   Example: `my_drupal_db-localhost_2010Dec19-164017.sql.gz.enc`
+   Example: `my_drupal_db-localhost_2010Dec19-164017.sql.bz2.enc`
    
    To get the dump to skip the _common_ tables like `cache_*` and such
    add the following to your `~/.drush/drushrc.php` file:
