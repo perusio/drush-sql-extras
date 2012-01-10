@@ -9,7 +9,6 @@
  *
  */
 
-
 // The default secure DB dumps directory.
 define('DRUSH_SQL_SECURE_DUMP_DB_DUMP_DIRNAME', $_SERVER['HOME'] . '/.drush-secure-dumps');
 // The default openssl executable.
@@ -22,7 +21,7 @@ define('DRUSH_SQL_SECURE_DUMP_PASSWD_FILE_MODE', 0400);
 define('DRUSH_SQL_SECURE_DUMP_PASSWD_FILE_MODE_STR', '400');
 
 /**
- * Implementation of hook_drush_help().
+ * Implements hook_drush_help().
  */
 function sql_secure_dump_drush_help($section) {
   switch ($section) {
@@ -31,15 +30,20 @@ function sql_secure_dump_drush_help($section) {
   }
 } // secure_db_dump_drush_help
 
-
 /**
- * Implementation of hook_drush_command().
+ * Implements hook_drush_command().
  */
 function sql_secure_dump_drush_command() {
+  $items = array();
+  $options = array();
+
+  // The command options.
   $options['--database'] = 'The DB connection key if using multiple connections in settings.php.';
   if (drush_drupal_major_version() >= 7) {
     $options['--target'] = 'The name of a target within the specified database.';
   }
+
+  // The provided commands.
   $items['sql-secure-dump'] = array(
     'callback' => 'drush_sql_secure_dump_execute',
     'description' => 'Exports the Drupal DB as SQL using mysqldump and encrypts the dump.',
@@ -68,7 +72,6 @@ function sql_secure_dump_drush_command() {
   return $items;
 } // sql_secure_dump_drush_command
 
-
 /**
  * Command callback. Outputs the entire Drupal database in SQL format using
  * mysqldump.
@@ -84,7 +87,6 @@ function drush_sql_secure_dump_execute($db_spec = NULL) {
   return $return;
 } // drush_sql_secure_dump_execute
 
-
 /**
  * Build a mysqldump/pg_dump/sqlite statement.
  *
@@ -98,7 +100,6 @@ function drush_sql_secure_dump_execute($db_spec = NULL) {
 function drush_sql_secure_dump($db_spec = NULL) {
   return drush_sql_build_secure_dump_command(drush_sql_get_table_selection(), $db_spec);
 } // drush_sql_secure_dump
-
 
 /**
  * Build a mysqldump/pg_dump/sqlite statement.
@@ -265,7 +266,6 @@ function drush_sql_build_secure_dump_command($table_selection, $db_spec = NULL) 
 
   return array($exec, "$file.bz2.enc");
 } // drush_sql_build_secure_dump_command
-
 
 /**
  * Get the password filename if exists and check its permissions.
