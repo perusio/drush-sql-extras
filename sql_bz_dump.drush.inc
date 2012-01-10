@@ -9,14 +9,12 @@
  *
  */
 
-
 // The default DB dumps directory name.
 define('DRUSH_SQL_DUMP_DB_DUMP_DIRNAME', $_SERVER['HOME'] . '/' . '.drush-dumps');
 // The default compression program binary.
 define('DRUSH_SQL_DUMP_BZIP2_PROGRAM', '/usr/bin/bzip2');
 // The default paralledl compression program binary.
 define('DRUSH_SQL_DUMP_PBZIP2_PROGRAM', '/usr/bin/pbzip2');
-
 
 /**
  * Implementation of hook_drush_help().
@@ -27,7 +25,6 @@ function sql_bz_dump_drush_help($section) {
       return dt('Dumps a database and compresses it using (p)bzip2');
   }
 } // secure_db_dump_drush_help
-
 
 /**
  * Gets the path to the bzip executable. It tries first to find the pibz
@@ -48,15 +45,19 @@ function sql_bz_get_bzip_command() {
   return $bzip_binary;
 } // sql_bz_get_bzip_command
 
-
 /**
  * Implementation of hook_drush_command().
  */
 function sql_bz_dump_drush_command() {
+  $items = array();
+  $options = array();
+
+  // Command options.
   $options['--database'] = 'The DB connection key if using multiple connections in settings.php.';
   if (drush_drupal_major_version() >= 7) {
     $options['--target'] = 'The name of a target within the specified database.';
   }
+  // The commands.
   $items['sql-bz-dump'] = array(
     'callback' => 'drush_sql_bz_dump_execute',
     'description' => 'Exports the Drupal DB as SQL using mysqldump and compresses the dump. Default location is ~/.drush-dumps.',
@@ -83,7 +84,6 @@ function sql_bz_dump_drush_command() {
   return $items;
 } // sql_bz_dump_drush_command
 
-
 /**
  * Build a bzipped mysqldump/pg_dump/sqlite statement.
  *
@@ -104,7 +104,6 @@ function drush_sql_bz_dump_execute($db_spec = NULL) {
   }
   return $return;
 } // drush_sql_bz_dump_execute
-
 
 /**
  * Build a mysqldump/pg_dump/sqlite statement.
@@ -266,7 +265,6 @@ function drush_sql_build_bz_dump_command($table_selection, $db_spec = NULL) {
 
   return array($exec, "$file.bz2");
 } // drush_sql_build_bz_dump_command
-
 
 /**
  * This function builds the name of the default dump directory. If it doesn't
